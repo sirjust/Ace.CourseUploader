@@ -1,9 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="97.0.4692.7100" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Ace.CourseUploader.Data\Ace.CourseUploader.Data.csproj" />
