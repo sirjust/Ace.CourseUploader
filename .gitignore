@@ -338,3 +338,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Ace.CourseUploader-specific files to ignore
+LoginInfo.cs
