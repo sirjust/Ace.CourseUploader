@@ -1,4 +1,5 @@
-﻿using Ace.CourseUploader.Web;
+﻿using Ace.CourseUploader.Data;
+using Ace.CourseUploader.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
@@ -15,8 +16,10 @@ namespace Ace.CourseUploader
         {
             var host = CreateHostBuilder(args).Build();
 
-            IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
-            uploader.Login();
+            //IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
+            //uploader.Login();
+            var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
+            reader.ReadSpreadsheet(".\\Course Upload MASTER 1.31.22.xlsx");
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -31,6 +34,7 @@ namespace Ace.CourseUploader
             chromeOptions.AddExcludedArguments(ls);
             var driver = new ChromeDriver(options: chromeOptions);
 
+            services.AddSingleton<ISpreadsheetReader, SpreadsheetReader>();
             services.AddSingleton<IWebDriver>(driver);
             services.AddSingleton<WebDriverWait>(new WebDriverWait(driver, TimeSpan.FromSeconds(10)));
             services.AddScoped<IUploader, Uploader>();

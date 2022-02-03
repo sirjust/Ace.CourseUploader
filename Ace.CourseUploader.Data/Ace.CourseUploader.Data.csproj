@@ -4,4 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ExcelToEnumerable" Version="0.3.10" />
+  </ItemGroup>
+
 </Project>
