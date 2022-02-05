@@ -1,4 +1,5 @@
 ﻿using Ace.CourseUploader.Data;
+using Ace.CourseUploader.Data.Models;
 using Ace.CourseUploader.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,9 +23,14 @@ namespace Ace.CourseUploader
 
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
             uploader.Login();
-            foreach (var course in reader.Courses)
+            foreach (var course in reader.UploadPackage.Courses)
             {
                 uploader.CreateCourse(course);
+            }
+
+            foreach (var lesson in reader.UploadPackage.Lessons)
+            {
+                uploader.CreateLesson(lesson);
             }
         }
 
@@ -40,6 +46,7 @@ namespace Ace.CourseUploader
             chromeOptions.AddExcludedArguments(ls);
             var driver = new ChromeDriver(options: chromeOptions);
 
+            services.AddSingleton<UploadPackage>();
             services.AddSingleton<ISpreadsheetReader, SpreadsheetReader>();
             services.AddSingleton<IWebDriver>(driver);
             services.AddSingleton<WebDriverWait>(new WebDriverWait(driver, TimeSpan.FromSeconds(10)));

@@ -6,5 +6,6 @@ namespace Ace.CourseUploader.Web
     {
         void CreateCourse(Course course);
         void Login();
+        void CreateLesson(Lesson lesson);
     }
 }

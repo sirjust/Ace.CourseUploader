@@ -41,5 +41,10 @@ namespace Ace.CourseUploader.Web
             _driver.FindElement(By.Id("title")).SendKeys(course.CourseName);
             _driver.FindElement(By.Id("publish")).Click();
         }
+
+        public void CreateLesson(Lesson lesson)
+        {
+            Console.WriteLine($"Creating lesson with name {lesson.CourseName}");
+        }
     }
 }

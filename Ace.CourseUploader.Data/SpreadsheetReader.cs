@@ -8,17 +8,29 @@ namespace Ace.CourseUploader.Data
 {
     public class SpreadsheetReader : ISpreadsheetReader
     {
-        public List<Course> Courses { get; set; }
-        public List<Question> Questions { get; set; }
+        UploadPackage _package;
+        public SpreadsheetReader(UploadPackage package)
+        {
+            _package = package;
+        }
+
+        public UploadPackage UploadPackage { get { return _package; } }
 
         public void ReadSpreadsheet(string filePath)
         {
             Console.WriteLine("Reading spreadsheet", filePath);
             Console.WriteLine();
+            var rawQuestionData = GetRawQuestionData(filePath);
+            SetTrueFalse(rawQuestionData);
 
-            Courses = GetCourses(filePath);
-            Questions = GetRawQuestionData(filePath);
-            SetTrueFalse(Questions);
+            _package.Courses = GetCourses(filePath);
+            _package.Lessons = GetLessons(_package.Courses);
+            _package.Quizzes = GetQuizzes(rawQuestionData);
+
+            foreach(var quiz in _package.Quizzes)
+            {
+                quiz.Questions.AddRange(rawQuestionData.Where(x => x.QuizName.Contains(quiz.Title)));
+            }
         }
 
         private static List<Course> GetCourses(string filePath)
@@ -54,7 +66,7 @@ namespace Ace.CourseUploader.Data
             ).ToList();
         }
 
-        private void SetTrueFalse(List<Question> questions)
+        private static void SetTrueFalse(List<Question> questions)
         {
             foreach(var question in questions)
             {
@@ -64,6 +76,33 @@ namespace Ace.CourseUploader.Data
                     question.Answer2 = "FALSE";
                 }
             }
+        }
+
+        private static List<Lesson> GetLessons(List<Course> courses)
+        {
+            var lessons = new List<Lesson>();
+            foreach (var course in courses)
+            {
+                lessons.Add(new Lesson { CourseName = course.CourseName });
+            }
+            return lessons;
+        }
+
+        private static List<Quiz> GetQuizzes(List<Question> rawQuestions)
+        {
+            var quizzes = new List<Quiz>();
+            foreach(var question in rawQuestions)
+            {
+                List<string> referencedQuizzes = question.QuizName.Split(',').ToList();
+                foreach (var quizName in referencedQuizzes)
+                {
+                    if (!quizzes.Any(q => q.Title == quizName))
+                    {
+                        quizzes.Add(new Quiz { Title = quizName });
+                    }
+                }
+            }
+            return quizzes;
         }
     }
 }
