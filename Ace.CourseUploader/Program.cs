@@ -16,10 +16,16 @@ namespace Ace.CourseUploader
         {
             var host = CreateHostBuilder(args).Build();
 
-            //IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
-            //uploader.Login();
+            
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
             reader.ReadSpreadsheet(".\\Course Upload MASTER 1.31.22.xlsx");
+
+            IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
+            uploader.Login();
+            foreach (var course in reader.Courses)
+            {
+                uploader.CreateCourse(course);
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

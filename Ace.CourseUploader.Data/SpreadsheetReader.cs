@@ -8,14 +8,17 @@ namespace Ace.CourseUploader.Data
 {
     public class SpreadsheetReader : ISpreadsheetReader
     {
+        public List<Course> Courses { get; set; }
+        public List<Question> Questions { get; set; }
+
         public void ReadSpreadsheet(string filePath)
         {
             Console.WriteLine("Reading spreadsheet", filePath);
             Console.WriteLine();
 
-            var courses = GetCourses(filePath);
-            var questions = GetRawQuestionData(filePath);
-            SetTrueFalse(questions);
+            Courses = GetCourses(filePath);
+            Questions = GetRawQuestionData(filePath);
+            SetTrueFalse(Questions);
         }
 
         private static List<Course> GetCourses(string filePath)

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Ace.CourseUploader.Data.Models;
+using Microsoft.Extensions.Configuration;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
@@ -30,6 +31,15 @@ namespace Ace.CourseUploader.Web
             _driver.FindElement(By.Id("user_pass")).SendKeys(_configuration["Password"]);
 
             _driver.FindElement(By.Id("wp-submit")).Click();
+        }
+
+        public void CreateCourse(Course course)
+        {
+            Console.WriteLine($"Creating course with name {course.CourseName}");
+            _driver.Url = _configuration["CoursePageUrl"];
+
+            _driver.FindElement(By.Id("title")).SendKeys(course.CourseName);
+            _driver.FindElement(By.Id("publish")).Click();
         }
     }
 }
