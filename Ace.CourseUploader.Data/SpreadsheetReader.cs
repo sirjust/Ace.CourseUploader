@@ -1,5 +1,6 @@
 ﻿using Ace.CourseUploader.Data.Models;
 using ExcelToEnumerable;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,17 @@ namespace Ace.CourseUploader.Data
 
             foreach(var quiz in _package.Quizzes)
             {
-                quiz.Questions.AddRange(rawQuestionData.Where(x => x.QuizName.Contains(quiz.Title)));
+                // This creates a deep copy, otherwise when we scrub, the short version won't get any questions at all
+                // This is inefficient, so if performance starts suffering we can revisit this approach
+                List<Question> questions = JsonConvert.DeserializeObject<List<Question>>(JsonConvert.SerializeObject(rawQuestionData));
+                quiz.Questions.AddRange(questions.Where(x => x.QuizName.Contains(quiz.Title)));
+                quiz.CourseId = quiz.LessonId = ScrubVersions(quiz.Title, questions.FirstOrDefault().CourseName);
+
+                foreach(var question in quiz.Questions)
+                {
+                    question.QuizName = ScrubVersions(quiz.Title, question.QuizName);
+                    question.CourseName = ScrubVersions(quiz.Title, question.CourseName);
+                }
             }
         }
 
@@ -103,6 +114,28 @@ namespace Ace.CourseUploader.Data
                 }
             }
             return quizzes;
+        }
+
+        private static string ScrubVersions(string quizName, string name)
+        {
+            if (!name.Contains(","))
+            {
+                return name;
+            }
+            else
+            {
+                if (quizName.Contains("LV"))
+                {
+                    var names = name.Split(',');
+                    name = names.Where(x => x.Contains("LV")).FirstOrDefault();
+                }
+                else if (quizName.Contains("SV"))
+                {
+                    var names = name.Split(',');
+                    name = names.Where(x => x.Contains("SV")).FirstOrDefault();
+                }
+            }
+            return name;
         }
     }
 }

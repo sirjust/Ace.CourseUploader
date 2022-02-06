@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Linq;
 
 namespace Ace.CourseUploader.Web
 {
@@ -45,6 +46,30 @@ namespace Ace.CourseUploader.Web
         public void CreateLesson(Lesson lesson)
         {
             Console.WriteLine($"Creating lesson with name {lesson.CourseName}");
+            _driver.Url = _configuration["LessonPageUrl"];
+
+            _driver.FindElement(By.Id("title")).SendKeys(lesson.CourseName);
+            _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
+            _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click();
+            _driver.FindElement(By.XPath($"//li[text() = '{lesson.CourseName}']")).Click();
+
+            _driver.FindElement(By.Id("publish")).Click();
+        }
+
+        public void CreateQuiz(Quiz quiz)
+        {
+            Console.WriteLine($"Creating quiz with name {quiz.Title}");
+            _driver.Url = _configuration["QuizPageUrl"];
+
+            _driver.FindElement(By.Id("title")).SendKeys(quiz.Title);
+
+            // Associate quiz to both lesson and course
+            _driver.FindElement(By.Id("tab-sfwd-quiz-settings")).Click();
+            _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_course-container")).Click();
+            _driver.FindElement(By.XPath($"//li[text() = '{quiz.Questions.FirstOrDefault().CourseName}']")).Click();
+
+            _driver.FindElement(By.Id("tab-learndash_quiz_builder")).Click();
+
         }
     }
 }

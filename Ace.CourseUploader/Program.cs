@@ -23,15 +23,17 @@ namespace Ace.CourseUploader
 
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
             uploader.Login();
-            foreach (var course in reader.UploadPackage.Courses)
-            {
-                uploader.CreateCourse(course);
-            }
+            //foreach (var course in reader.UploadPackage.Courses)
+            //{
+            //    uploader.CreateCourse(course);
+            //}
+            uploader.CreateCourse(reader.UploadPackage.Courses[0]);
+            uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
 
-            foreach (var lesson in reader.UploadPackage.Lessons)
-            {
-                uploader.CreateLesson(lesson);
-            }
+            //foreach (var lesson in reader.UploadPackage.Lessons)
+            //{
+            //    uploader.CreateLesson(lesson);
+            //}
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
