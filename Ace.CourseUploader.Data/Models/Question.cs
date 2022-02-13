@@ -5,7 +5,7 @@ namespace Ace.CourseUploader.Data.Models
     public class Question
     {
         public string QuizId { get; set; }
-        public List<Answer> Answers { get; set; }
+        public List<Answer> Answers { get; set; } = new List<Answer>();
         public string CourseName { get; set; }
         public string QuizName { get; set; }
         public int QuestionNumber { get; set; }

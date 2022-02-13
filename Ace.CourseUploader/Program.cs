@@ -27,8 +27,16 @@ namespace Ace.CourseUploader
             //{
             //    uploader.CreateCourse(course);
             //}
-            uploader.CreateCourse(reader.UploadPackage.Courses[0]);
-            uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
+            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
+            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
+            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
+
+            //uploader.CreateQuestion(reader.UploadPackage.Quizzes[0].Questions[0]);
+            reader.UploadPackage.Quizzes[0].Questions.ForEach(uploader.CreateQuestion);
+            //foreach(var question in reader.UploadPackage.Quizzes[0].Questions)
+            //{
+            //    uploader.CreateQuestion(question);
+            //}
 
             //foreach (var lesson in reader.UploadPackage.Lessons)
             //{

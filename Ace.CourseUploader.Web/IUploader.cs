@@ -8,5 +8,6 @@ namespace Ace.CourseUploader.Web
         void Login();
         void CreateLesson(Lesson lesson);
         void CreateQuiz(Quiz quiz);
+        void CreateQuestion(Question question);
     }
 }

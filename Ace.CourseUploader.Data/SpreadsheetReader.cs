@@ -40,6 +40,7 @@ namespace Ace.CourseUploader.Data
                 {
                     question.QuizName = ScrubVersions(quiz.Title, question.QuizName);
                     question.CourseName = ScrubVersions(quiz.Title, question.CourseName);
+                    PopulateAnswers(question);
                 }
             }
         }
@@ -136,6 +137,34 @@ namespace Ace.CourseUploader.Data
                 }
             }
             return name;
+        }
+
+        private static void PopulateAnswers(Question question)
+        {
+            if (question.Answer1?.Length > 0)
+            {
+                question.Answers.Add(new Answer { Text = question.Answer1 });
+            }
+
+            if (question.Answer2?.Length > 0)
+            {
+                question.Answers.Add(new Answer { Text = question.Answer2 });
+            }
+
+            if (question.Answer3?.Length > 0)
+            {
+                question.Answers.Add(new Answer { Text = question.Answer3 });
+            }
+
+            if (question.Answer4?.Length > 0)
+            {
+                question.Answers.Add(new Answer { Text = question.Answer4 });
+            }
+
+            if (question.Answer5?.Length > 0)
+            {
+                question.Answers.Add(new Answer { Text = question.Answer5 });
+            }
         }
     }
 }
