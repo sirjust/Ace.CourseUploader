@@ -19,7 +19,7 @@ namespace Ace.CourseUploader
 
             
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
-            reader.ReadSpreadsheet(".\\Course Upload MASTER 1.31.22.xlsx");
+            reader.ReadSpreadsheet(".\\Course Upload MASTER 02.08.22.xlsx");
 
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
             uploader.Login();
@@ -27,12 +27,12 @@ namespace Ace.CourseUploader
             //{
             //    uploader.CreateCourse(course);
             //}
-            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
-            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
-            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
+            uploader.CreateCourse(reader.UploadPackage.Courses[0]);
+            uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
+            uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
+            uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
 
             //uploader.CreateQuestion(reader.UploadPackage.Quizzes[0].Questions[0]);
-            reader.UploadPackage.Quizzes[0].Questions.ForEach(uploader.CreateQuestion);
             //foreach(var question in reader.UploadPackage.Quizzes[0].Questions)
             //{
             //    uploader.CreateQuestion(question);
@@ -57,6 +57,7 @@ namespace Ace.CourseUploader
             var driver = new ChromeDriver(options: chromeOptions);
 
             services.AddSingleton<UploadPackage>();
+            services.AddSingleton<IQuestionFormatter, QuestionFormatter>();
             services.AddSingleton<ISpreadsheetReader, SpreadsheetReader>();
             services.AddSingleton<IWebDriver>(driver);
             services.AddSingleton<WebDriverWait>(new WebDriverWait(driver, TimeSpan.FromSeconds(10)));

@@ -1,6 +1,5 @@
 ﻿using Ace.CourseUploader.Data.Models;
 using ExcelToEnumerable;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +9,11 @@ namespace Ace.CourseUploader.Data
     public class SpreadsheetReader : ISpreadsheetReader
     {
         UploadPackage _package;
-        public SpreadsheetReader(UploadPackage package)
+        IQuestionFormatter _questionFormatter;
+        public SpreadsheetReader(UploadPackage package, IQuestionFormatter questionFormatter)
         {
             _package = package;
+            _questionFormatter = questionFormatter;
         }
 
         public UploadPackage UploadPackage { get { return _package; } }
@@ -21,28 +22,17 @@ namespace Ace.CourseUploader.Data
         {
             Console.WriteLine("Reading spreadsheet", filePath);
             Console.WriteLine();
-            var rawQuestionData = GetRawQuestionData(filePath);
-            SetTrueFalse(rawQuestionData);
-
+            
             _package.Courses = GetCourses(filePath);
-            _package.Lessons = GetLessons(_package.Courses);
-            _package.Quizzes = GetQuizzes(rawQuestionData);
+            _package.Quizzes = GetQuizzes(filePath);
+            _package.Lessons = GetLessons(_package.Quizzes);
 
-            foreach(var quiz in _package.Quizzes)
-            {
-                // This creates a deep copy, otherwise when we scrub, the short version won't get any questions at all
-                // This is inefficient, so if performance starts suffering we can revisit this approach
-                List<Question> questions = JsonConvert.DeserializeObject<List<Question>>(JsonConvert.SerializeObject(rawQuestionData));
-                quiz.Questions.AddRange(questions.Where(x => x.QuizName.Contains(quiz.Title)));
-                quiz.CourseId = quiz.LessonId = ScrubVersions(quiz.Title, questions.FirstOrDefault().CourseName);
+            var questions = GetRawQuestionData(filePath);
+            _questionFormatter.SetTrueFalse(questions);
+            _questionFormatter.SetQuizNames(questions);
+            foreach (var question in questions) _questionFormatter.PopulateAnswers(question);
 
-                foreach(var question in quiz.Questions)
-                {
-                    question.QuizName = ScrubVersions(quiz.Title, question.QuizName);
-                    question.CourseName = ScrubVersions(quiz.Title, question.CourseName);
-                    PopulateAnswers(question);
-                }
-            }
+            _package.Questions = questions;
         }
 
         private static List<Course> GetCourses(string filePath)
@@ -63,9 +53,8 @@ namespace Ace.CourseUploader.Data
             x => x.UsingSheet("Quiz_Questions FOR TESTING ONLY")
             
             .Property(y => y.CourseName).UsesColumnNamed("Course Name")
-            .Property(y => y.QuizName).UsesColumnNamed("Quiz Name")
+            .Property(y => y.UnsplitQuizName).UsesColumnNamed("Quiz Name")
             .Property(y => y.QuestionNumber).UsesColumnNamed("Question Number")
-            .Property(y => y.PassPercentage).UsesColumnNamed("Pass Percentage")
             .Property(y => y.QuestionText).UsesColumnNamed("Question")
             .Property(y => y.Answer1).UsesColumnNamed("Answer 1")
             .Property(y => y.Answer2).UsesColumnNamed("Answer 2")
@@ -75,96 +64,52 @@ namespace Ace.CourseUploader.Data
             .Property(y => y.CorrectAnswer).UsesColumnNamed("Correct Answer")
             .Property(y => y.QuizQuestionImage).UsesColumnNamed("Quiz Question Image")
             .Property(y => y.QuizId).Ignore()
+            .Property(y => y.QuizNames).Ignore()
             ).ToList();
         }
 
-        private static void SetTrueFalse(List<Question> questions)
-        {
-            foreach(var question in questions)
-            {
-                if(question.Answer1 == "1" && question.Answer2 == "0" && question.Answer3 == null && question.Answer4 == null && question.Answer5 == null)
-                {
-                    question.Answer1 = "TRUE";
-                    question.Answer2 = "FALSE";
-                }
-            }
-        }
-
-        private static List<Lesson> GetLessons(List<Course> courses)
+        private static List<Lesson> GetLessons(List<Quiz> quizzes)
         {
             var lessons = new List<Lesson>();
-            foreach (var course in courses)
+            foreach (var quiz in quizzes)
             {
-                lessons.Add(new Lesson { CourseName = course.CourseName });
+                lessons.Add(new Lesson { CourseName = quiz.CourseName, Name = quiz.LessonName });
             }
             return lessons;
         }
 
-        private static List<Quiz> GetQuizzes(List<Question> rawQuestions)
+        private static List<Quiz> GetQuizzes(string filePath)
         {
-            var quizzes = new List<Quiz>();
-            foreach(var question in rawQuestions)
-            {
-                List<string> referencedQuizzes = question.QuizName.Split(',').ToList();
-                foreach (var quizName in referencedQuizzes)
-                {
-                    if (!quizzes.Any(q => q.Title == quizName))
-                    {
-                        quizzes.Add(new Quiz { Title = quizName });
-                    }
-                }
-            }
-            return quizzes;
+            return filePath.ExcelToEnumerable<Quiz>(
+            x => x.UsingSheet("Course to Lesson to Quiz FTO")
+            .Property(y => y.Name).UsesColumnNamed("Quiz Name")
+            .Property(y => y.CourseName).UsesColumnNamed("Course Name")
+            .Property(y => y.LessonName).UsesColumnNamed("Lesson Name")
+            .Property(y => y.PassPercentage).UsesColumnNamed("Pass Percentage")
+            .Property(y => y.Author).Ignore()
+            ).ToList();
         }
 
-        private static string ScrubVersions(string quizName, string name)
-        {
-            if (!name.Contains(","))
-            {
-                return name;
-            }
-            else
-            {
-                if (quizName.Contains("LV"))
-                {
-                    var names = name.Split(',');
-                    name = names.Where(x => x.Contains("LV")).FirstOrDefault();
-                }
-                else if (quizName.Contains("SV"))
-                {
-                    var names = name.Split(',');
-                    name = names.Where(x => x.Contains("SV")).FirstOrDefault();
-                }
-            }
-            return name;
-        }
-
-        private static void PopulateAnswers(Question question)
-        {
-            if (question.Answer1?.Length > 0)
-            {
-                question.Answers.Add(new Answer { Text = question.Answer1 });
-            }
-
-            if (question.Answer2?.Length > 0)
-            {
-                question.Answers.Add(new Answer { Text = question.Answer2 });
-            }
-
-            if (question.Answer3?.Length > 0)
-            {
-                question.Answers.Add(new Answer { Text = question.Answer3 });
-            }
-
-            if (question.Answer4?.Length > 0)
-            {
-                question.Answers.Add(new Answer { Text = question.Answer4 });
-            }
-
-            if (question.Answer5?.Length > 0)
-            {
-                question.Answers.Add(new Answer { Text = question.Answer5 });
-            }
-        }
+        //private static string ScrubVersions(string quizName, string name)
+        //{
+        //    if (!name.Contains(","))
+        //    {
+        //        return name;
+        //    }
+        //    else
+        //    {
+        //        if (quizName.Contains("LV"))
+        //        {
+        //            var names = name.Split(',');
+        //            name = names.Where(x => x.Contains("LV")).FirstOrDefault();
+        //        }
+        //        else if (quizName.Contains("SV"))
+        //        {
+        //            var names = name.Split(',');
+        //            name = names.Where(x => x.Contains("SV")).FirstOrDefault();
+        //        }
+        //    }
+        //    return name;
+        //}
     }
 }

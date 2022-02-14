@@ -50,7 +50,7 @@ namespace Ace.CourseUploader.Web
             Console.WriteLine($"Creating lesson with name {lesson.CourseName}");
             _driver.Url = _configuration["LessonPageUrl"];
 
-            _driver.FindElement(By.Id("title")).SendKeys(lesson.CourseName);
+            _driver.FindElement(By.Id("title")).SendKeys(lesson.Name);
             _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
             _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click();
             _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{lesson.CourseName}']"))).Click();
@@ -60,26 +60,26 @@ namespace Ace.CourseUploader.Web
 
         public void CreateQuiz(Quiz quiz)
         {
-            Console.WriteLine($"Creating quiz with name {quiz.Title}");
+            Console.WriteLine($"Creating quiz with name {quiz.Name}");
             _driver.Url = _configuration["QuizPageUrl"];
 
-            _driver.FindElement(By.Id("title")).SendKeys(quiz.Title);
+            _driver.FindElement(By.Id("title")).SendKeys(quiz.Name);
 
             #region quiz association
             // Associate quiz to both lesson and course
             _driver.FindElement(By.Id("tab-sfwd-quiz-settings")).Click();
             _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_course-container")).Click();
-            _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.CourseId}']"))).Click();
+            _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.CourseName}']"))).Click();
 
-            Thread.Sleep(2000); // Here the clicking may be too quick for it to populate
+            Thread.Sleep(1000); // Here the clicking may be too quick for it to populate
             _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_lesson-container")).Click();
 
-            _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.LessonId}']"))).Click();
+            _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.LessonName}']"))).Click();
             #endregion
 
             var passingPercentageElement = _driver.FindElement(By.Id("learndash-quiz-progress-settings_passingpercentage"));
             passingPercentageElement.Clear();
-            passingPercentageElement.SendKeys(quiz.Questions.FirstOrDefault().PassPercentage.ToString());
+            passingPercentageElement.SendKeys(quiz.PassPercentage.ToString());
 
             //_driver.FindElement(By.Id("tab-learndash_quiz_builder")).Click();
 
@@ -126,7 +126,7 @@ namespace Ace.CourseUploader.Web
 
             _driver.Url = _configuration["QuestionPageUrl"];
 
-            _driver.FindElement(By.Id("title")).SendKeys($"{question.QuizName} Question {question.QuestionNumber}");
+            _driver.FindElement(By.Id("title")).SendKeys($"{question.QuizNames.FirstOrDefault()} Question {question.QuestionNumber}");
             _driver.FindElement(By.ClassName("wp-editor-area")).Click();
             _driver.FindElement(By.ClassName("wp-editor-area")).SendKeys(question.QuestionText);
 
@@ -140,7 +140,7 @@ namespace Ace.CourseUploader.Web
             var answerCount = question.Answers.Count;
             while (answerCount > 1)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 var button = _wait.Until(d => d.FindElement(By.CssSelector(".classic_answer > .button-primary.addAnswer")));
                 button.Click();
                 answerCount--;

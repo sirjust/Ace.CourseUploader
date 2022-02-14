@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace Ace.CourseUploader.Data.Models
+﻿namespace Ace.CourseUploader.Data.Models
 {
     public class Quiz
     {
-        public string CourseId { get; set; }
-        public string LessonId { get; set; }
-        public string Title { get; set; }
+        public string CourseName { get; set; }
+        public string LessonName { get; set; }
+        public string Name { get; set; }
         public string Author { get; set; }
-        public List<Question> Questions { get; set; } = new List<Question>();
+        public int PassPercentage { get; set; }
     }
 }
