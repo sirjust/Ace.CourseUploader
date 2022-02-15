@@ -4,7 +4,6 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
-using System.Linq;
 using System.Threading;
 
 namespace Ace.CourseUploader.Web
@@ -100,7 +99,7 @@ namespace Ace.CourseUploader.Web
 
             _driver.Url = _configuration["QuestionPageUrl"];
 
-            _driver.FindElement(By.Id("title")).SendKeys($"{question.QuizNames.FirstOrDefault()} Question {question.QuestionNumber}");
+            _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
             _driver.FindElement(By.ClassName("wp-editor-area")).Click();
             _driver.FindElement(By.ClassName("wp-editor-area")).SendKeys(question.QuestionText);
 

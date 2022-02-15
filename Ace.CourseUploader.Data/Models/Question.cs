@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Ace.CourseUploader.Data.Models
 {
     public class Question
     {
-        public string QuizId { get; set; }
+        public string TruncatedQuizName { get => QuizNames.FirstOrDefault()[..^2]; }
         public List<Answer> Answers { get; set; } = new List<Answer>();
         public string CourseName { get; set; }
         public string UnsplitQuizName { get; set; }

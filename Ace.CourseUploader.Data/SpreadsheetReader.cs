@@ -63,7 +63,7 @@ namespace Ace.CourseUploader.Data
             .Property(y => y.Answer5).UsesColumnNamed("Answer 5")
             .Property(y => y.CorrectAnswer).UsesColumnNamed("Correct Answer")
             .Property(y => y.QuizQuestionImage).UsesColumnNamed("Quiz Question Image")
-            .Property(y => y.QuizId).Ignore()
+            .Property(y => y.TruncatedQuizName).Ignore()
             .Property(y => y.QuizNames).Ignore()
             ).ToList();
         }

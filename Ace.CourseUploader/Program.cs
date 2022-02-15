@@ -16,12 +16,12 @@ namespace Ace.CourseUploader
         static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-
             
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
             reader.ReadSpreadsheet(".\\Course Upload MASTER 02.08.22.xlsx");
 
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
+
             uploader.Login();
             foreach (var course in reader.UploadPackage.Courses)
             {
@@ -38,10 +38,15 @@ namespace Ace.CourseUploader
                 uploader.CreateQuiz(quiz);
             }
 
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 uploader.CreateQuestion(reader.UploadPackage.Questions[i]);
             }
+
+            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
+            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
+            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
+            //uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
