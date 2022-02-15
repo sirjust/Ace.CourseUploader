@@ -23,25 +23,25 @@ namespace Ace.CourseUploader
 
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
             uploader.Login();
-            //foreach (var course in reader.UploadPackage.Courses)
-            //{
-            //    uploader.CreateCourse(course);
-            //}
-            uploader.CreateCourse(reader.UploadPackage.Courses[0]);
-            uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
-            uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
-            uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
+            foreach (var course in reader.UploadPackage.Courses)
+            {
+                uploader.CreateCourse(course);
+            }
 
-            //uploader.CreateQuestion(reader.UploadPackage.Quizzes[0].Questions[0]);
-            //foreach(var question in reader.UploadPackage.Quizzes[0].Questions)
-            //{
-            //    uploader.CreateQuestion(question);
-            //}
+            foreach (var lesson in reader.UploadPackage.Lessons)
+            {
+                uploader.CreateLesson(lesson);
+            }
 
-            //foreach (var lesson in reader.UploadPackage.Lessons)
-            //{
-            //    uploader.CreateLesson(lesson);
-            //}
+            foreach (var quiz in reader.UploadPackage.Quizzes)
+            {
+                uploader.CreateQuiz(quiz);
+            }
+
+            for(int i = 0; i < 10; i++)
+            {
+                uploader.CreateQuestion(reader.UploadPackage.Questions[i]);
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

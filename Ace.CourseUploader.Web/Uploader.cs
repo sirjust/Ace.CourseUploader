@@ -1,6 +1,7 @@
 ﻿using Ace.CourseUploader.Data.Models;
 using Microsoft.Extensions.Configuration;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Linq;
@@ -97,44 +98,11 @@ namespace Ace.CourseUploader.Web
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
 
-            #region QuizBuilder
-            //_driver.FindElement(By.LinkText("New Question")).Click();
-            //_wait.Until(d => d.FindElement(By.CssSelector("input[placeholder='Enter a title']"))).SendKeys(count.ToString());
-            //_driver.FindElement(By.CssSelector(".is-primary.ld__builder--new-entity-button")).Click();
-
-            //// Now add the question text
-            //_wait.Until(d => d.FindElement(By.CssSelector(".ld-button-reset.toggle"))).Click();
-            //_driver.FindElement(By.CssSelector("span[class='warning']")).Click();
-
-            //// Switch to new body
-            //_driver.SwitchTo().Frame(0);
-            //var body = _driver.FindElement(By.Id("tinymce"));
-            //body.Click();
-            //body.SendKeys(question.QuestionText);
-            ////IJavaScriptExecutor js = (IJavaScriptExecutor)_driver;
-            ////js.ExecuteScript("arguments[0].innerHTML = '<p>test</p>'", body);
-            //_driver.SwitchTo().DefaultContent();
-
-            ////_driver.FindElement(By.Id("tinymce")).FindElement(By.TagName("p")).SendKeys(question.QuestionText);
-            //_driver.FindElement(By.CssSelector("button[text()='Save'")).Click();
-
-            //// Now add the first answer
-            //_driver.FindElement(By.CssSelector("span[class='ld-answer-value']")).Click();
-            //_driver.FindElement(By.CssSelector("div[class='ld-answer-editor'] > textarea")).SendKeys(question.Answers.FirstOrDefault().Text);
-            //_driver.FindElement(By.CssSelector("button[text()='Update Answer']")).Click();
-            #endregion QuizBuilder
-
             _driver.Url = _configuration["QuestionPageUrl"];
 
             _driver.FindElement(By.Id("title")).SendKeys($"{question.QuizNames.FirstOrDefault()} Question {question.QuestionNumber}");
             _driver.FindElement(By.ClassName("wp-editor-area")).Click();
             _driver.FindElement(By.ClassName("wp-editor-area")).SendKeys(question.QuestionText);
-
-            // This matches a question to a quiz
-            //_wait.Until(d => d.FindElement(By.Id("tab-sfwd-question_page_questions-options"))).Click();
-            //var selectElement = new SelectElement(_driver.FindElement(By.CssSelector("select[name='sfwd-question_quiz']")));
-            //selectElement.SelectByText(question.QuizName);
-            //_driver.FindElement(By.Id("tab-post-body-content")).Click();
 
             // We need to click the `Add new answer` button so all the text fields are revealed. There is already one field visible, hence the subtraction
             var answerCount = question.Answers.Count;
@@ -168,7 +136,18 @@ namespace Ace.CourseUploader.Web
             var correctButtons = _driver.FindElements(By.CssSelector(".wpProQuiz_classCorrect.wpProQuiz_checkbox"));
             correctButtons[Convert.ToInt32(question.CorrectAnswer) - 1].Click();
 
-            _driver.FindElement(By.Id("publish")).Click();
+            // This matches a question to all its quizzes
+            var selectElement = new SelectElement(_driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']")));
+            foreach (var quiz in question.QuizNames)
+            {
+                selectElement.SelectByText(quiz);
+            }
+
+            var element = _driver.FindElement(By.Id("publish"));
+            Actions actions = new Actions(_driver);
+            actions.MoveToElement(element);
+            actions.Perform();
+            element.Click();
         }
     }
 }
