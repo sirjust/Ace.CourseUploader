@@ -40,6 +40,7 @@ namespace Ace.CourseUploader
             try
             {
                 uploader.Login();
+                uploader.ValidateUniqueNames(reader.UploadPackage);
                 uploader.UploadAllMaterials(reader.UploadPackage);
             }
             catch(Exception e)

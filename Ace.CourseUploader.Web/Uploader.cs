@@ -4,6 +4,8 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Ace.CourseUploader.Web
@@ -67,7 +69,7 @@ namespace Ace.CourseUploader.Web
         public void CreateCourse(Course course)
         {
             Console.WriteLine($"Creating course with name {course.CourseName}");
-            _driver.Url = _configuration["CoursePageUrl"];
+            _driver.Url = _configuration["NewCourseUrl"];
 
             _driver.FindElement(By.Id("title")).SendKeys(course.CourseName);
             _driver.FindElement(By.Id("publish")).Click();
@@ -76,7 +78,7 @@ namespace Ace.CourseUploader.Web
         public void CreateLesson(Lesson lesson)
         {
             Console.WriteLine($"Creating lesson with name {lesson.CourseName}");
-            _driver.Url = _configuration["LessonPageUrl"];
+            _driver.Url = _configuration["NewLessonUrl"];
 
             _driver.FindElement(By.Id("title")).SendKeys(lesson.Name);
             _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
@@ -89,7 +91,7 @@ namespace Ace.CourseUploader.Web
         public void CreateQuiz(Quiz quiz)
         {
             Console.WriteLine($"Creating quiz with name {quiz.Name}");
-            _driver.Url = _configuration["QuizPageUrl"];
+            _driver.Url = _configuration["NewQuizUrl"];
 
             _driver.FindElement(By.Id("title")).SendKeys(quiz.Name);
 
@@ -125,7 +127,7 @@ namespace Ace.CourseUploader.Web
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
 
-            _driver.Url = _configuration["QuestionPageUrl"];
+            _driver.Url = _configuration["NewQuestionUrl"];
 
             _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
             _driver.FindElement(By.ClassName("wp-editor-area")).Click();
@@ -175,6 +177,103 @@ namespace Ace.CourseUploader.Web
             actions.MoveToElement(element);
             actions.Perform();
             element.Click();
+        }
+
+        public bool AllCoursesUnique(List<Course> courses)
+        {
+            Console.WriteLine($"Checking all courses. Each new course should have a unique name");
+            _driver.Url = _configuration["ListCoursesUrl"];
+
+            var list = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
+
+            foreach (var course in courses)
+            {
+                if (list.Any(x => x.GetAttribute("innerHTML") == course.CourseName))
+                {
+                    Console.WriteLine($"Course {course.CourseName} already exists.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool AllLessonsUnique(List<Lesson> lessons)
+        {
+            Console.WriteLine($"Checking all lessons. Each new lesson should have a unique name");
+            _driver.Url = _configuration["ListLessonsUrl"];
+
+            var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
+            var courseNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .course > a")).ToList();
+
+            //foreach (var courseElement in courseNameElements) Console.WriteLine(courseElement.GetAttribute("innerHTML"));
+            //foreach (var lessonElement in lessonNameElements) Console.WriteLine(lessonElement.GetAttribute("innerHTML"));
+
+            if (courseNameElements.Count != lessonNameElements.Count)
+            {
+                var error = "It appears not every lesson is mapped to a course. In order to proceed, all current lessons must be mapped to a course";
+                throw new Exception(error);
+            }
+
+            var names = new List<string>();
+            for(int i = 0; i < courseNameElements.Count; i++)
+            {
+                names.Add($"{courseNameElements[i].GetAttribute("innerHTML")} {lessonNameElements[i].GetAttribute("innerHTML")}");
+            }
+
+            foreach (var lesson in lessons)
+            {
+                if (names.Any(x => x == lesson.FullLessonName))
+                {
+                    Console.WriteLine($"Lesson {lesson.FullLessonName} already exists.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool AllQuizzesUnique(List<Quiz> quizzes)
+        {
+            Console.WriteLine($"Checking all quizzes. Each new quiz should have a unique mapping to a lesson and course");
+            _driver.Url = _configuration["ListQuizzesUrl"];
+
+            var quizNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
+            var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .lesson_topic > a")).ToList();
+            var courseNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .course > a")).ToList();
+
+            if (!(courseNameElements.Count == lessonNameElements.Count && lessonNameElements.Count == quizNameElements.Count))
+            {
+                var error = "It appears not every quiz is mapped to a course. In order to proceed, all current lessons must be mapped to a course";
+                throw new Exception(error);
+            }
+
+            var currentQuizzes = new List<Quiz>();
+            for (int i = 0; i < courseNameElements.Count; i++)
+            {
+                currentQuizzes.Add(new Quiz
+                {
+                    Name = quizNameElements[i].GetAttribute("innerHTML"),
+                    LessonName = lessonNameElements[i].GetAttribute("innerHTML"),
+                    CourseName = courseNameElements[i].GetAttribute("innerHTML")
+                });
+            }
+
+            foreach(var quiz in quizzes)
+            {
+                if (currentQuizzes.Any(x => x.Name == quiz.Name && x.LessonName == quiz.LessonName && x.CourseName == quiz.CourseName))
+                {
+                    Console.WriteLine($"Quiz {quiz.Name} already exists.");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool ValidateUniqueNames(UploadPackage uploadPackage)
+        {
+            return AllCoursesUnique(uploadPackage.Courses) &&
+                AllLessonsUnique(uploadPackage.Lessons) &&
+                AllQuizzesUnique(uploadPackage.Quizzes);
         }
     }
 }
