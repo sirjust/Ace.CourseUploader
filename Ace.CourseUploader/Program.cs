@@ -1,5 +1,6 @@
 ﻿using Ace.CourseUploader.Data;
 using Ace.CourseUploader.Data.Models;
+using Ace.CourseUploader.Data.Validation;
 using Ace.CourseUploader.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,35 +19,34 @@ namespace Ace.CourseUploader
             var host = CreateHostBuilder(args).Build();
             
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
-            reader.ReadSpreadsheet(".\\Course Upload MASTER 02.08.22.xlsx");
+            var validator = (ISpreadsheetValidator)host.Services.GetService(typeof(ISpreadsheetValidator));
 
+            reader.ReadSpreadsheet(".\\Course Upload MASTER 02.08.22.xlsx");
+            var validationResponse = validator.ValidateSpreadsheet(reader.UploadPackage);
+
+            // Check whether the spreadsheet is valid
+            if(!validationResponse.Item1.IsValid || !validationResponse.Item2.IsValid || !validationResponse.Item3.IsValid || !validationResponse.Item4.IsValid)
+            {
+                Console.WriteLine(validationResponse.Item1.ValidationMessage);
+                Console.WriteLine(validationResponse.Item2.ValidationMessage);
+                Console.WriteLine(validationResponse.Item3.ValidationMessage);
+                Console.WriteLine(validationResponse.Item4.ValidationMessage);
+                Environment.Exit(-1);
+            }
+
+            // Upload the data in the spreasheet
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
 
-            uploader.Login();
-            foreach (var course in reader.UploadPackage.Courses)
+            try
             {
-                uploader.CreateCourse(course);
+                uploader.Login();
+                uploader.UploadAllMaterials(reader.UploadPackage);
             }
-
-            foreach (var lesson in reader.UploadPackage.Lessons)
+            catch(Exception e)
             {
-                uploader.CreateLesson(lesson);
+                Console.WriteLine(e.Message);
+                Environment.Exit(-1);
             }
-
-            foreach (var quiz in reader.UploadPackage.Quizzes)
-            {
-                uploader.CreateQuiz(quiz);
-            }
-
-            for (int i = 0; i < 10; i++)
-            {
-                uploader.CreateQuestion(reader.UploadPackage.Questions[i]);
-            }
-
-            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
-            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
-            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
-            //uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -64,6 +64,7 @@ namespace Ace.CourseUploader
             services.AddSingleton<UploadPackage>();
             services.AddSingleton<IQuestionFormatter, QuestionFormatter>();
             services.AddSingleton<ISpreadsheetReader, SpreadsheetReader>();
+            services.AddSingleton<ISpreadsheetValidator, SpreadsheetValidator>();
             services.AddSingleton<IWebDriver>(driver);
             services.AddSingleton<WebDriverWait>(new WebDriverWait(driver, TimeSpan.FromSeconds(10)));
             services.AddScoped<IUploader, Uploader>();

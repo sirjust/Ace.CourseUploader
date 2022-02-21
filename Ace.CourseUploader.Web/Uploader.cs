@@ -25,6 +25,34 @@ namespace Ace.CourseUploader.Web
             .Build();
         }
 
+        public void UploadAllMaterials(UploadPackage package)
+        {
+            foreach (var course in package.Courses)
+            {
+                CreateCourse(course);
+            }
+
+            foreach (var lesson in package.Lessons)
+            {
+                CreateLesson(lesson);
+            }
+
+            foreach (var quiz in package.Quizzes)
+            {
+                CreateQuiz(quiz);
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                CreateQuestion(package.Questions[i]);
+            }
+
+            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
+            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
+            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
+            //uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
+        }
+
         public void Login()
         {
             _driver.Manage().Window.Maximize();

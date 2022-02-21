@@ -9,5 +9,6 @@ namespace Ace.CourseUploader.Web
         void CreateLesson(Lesson lesson);
         void CreateQuiz(Quiz quiz);
         void CreateQuestion(Question question);
+        void UploadAllMaterials(UploadPackage package);
     }
 }
