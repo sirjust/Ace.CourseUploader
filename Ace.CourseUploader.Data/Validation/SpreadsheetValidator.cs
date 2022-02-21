@@ -144,7 +144,7 @@ namespace Ace.CourseUploader.Data.Validation
 
         public bool QuestionHasCorrectAnswer(Question question)
         {
-            return question?.CorrectAnswer <= question?.Answers?.Count;
+            return question?.CorrectAnswer <= question?.Answers?.Count && question?.CorrectAnswer != 0;
         }
     }
 }

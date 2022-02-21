@@ -20,7 +20,7 @@ namespace Ace.CourseUploader.Data
 
         public void ReadSpreadsheet(string filePath)
         {
-            Console.WriteLine("Reading spreadsheet", filePath);
+            Console.WriteLine($"Reading spreadsheet at {filePath}", filePath);
             Console.WriteLine();
             
             _package.Courses = GetCourses(filePath);
@@ -37,7 +37,9 @@ namespace Ace.CourseUploader.Data
 
         private static List<Course> GetCourses(string filePath)
         {
-            return filePath.ExcelToEnumerable<Course>(
+            try
+            {
+                return filePath.ExcelToEnumerable<Course>(
             x => x
             .Property(y => y.CourseName).UsesColumnNamed("Course Name")
             .Property(y => y.ProductName).UsesColumnNamed("Product Name")
@@ -45,71 +47,87 @@ namespace Ace.CourseUploader.Data
             .Property(y => y.Category).Ignore()
             .Property(y => y.Author).Ignore()
             ).ToList();
+            }
+            catch(Exception e)
+            {
+                FailedToReadSpreadsheet(e);
+                throw;
+            }
+
         }
 
         private static List<Question> GetRawQuestionData(string filePath)
         {
-            return filePath.ExcelToEnumerable<Question>(
-            x => x.UsingSheet("Quiz_Questions FOR TESTING ONLY")
-            
-            .Property(y => y.CourseName).UsesColumnNamed("Course Name")
-            .Property(y => y.UnsplitQuizName).UsesColumnNamed("Quiz Name")
-            .Property(y => y.QuestionNumber).UsesColumnNamed("Question Number")
-            .Property(y => y.QuestionText).UsesColumnNamed("Question")
-            .Property(y => y.Answer1).UsesColumnNamed("Answer 1")
-            .Property(y => y.Answer2).UsesColumnNamed("Answer 2")
-            .Property(y => y.Answer3).UsesColumnNamed("Answer 3")
-            .Property(y => y.Answer4).UsesColumnNamed("Answer 4")
-            .Property(y => y.Answer5).UsesColumnNamed("Answer 5")
-            .Property(y => y.CorrectAnswer).UsesColumnNamed("Correct Answer")
-            .Property(y => y.QuizQuestionImage).UsesColumnNamed("Quiz Question Image")
-            .Property(y => y.TruncatedQuizName).Ignore()
-            .Property(y => y.QuizNames).Ignore()
-            ).ToList();
+            try
+            {
+                return filePath.ExcelToEnumerable<Question>(
+                    x => x.UsingSheet("Quiz_Questions FOR TESTING ONLY")
+
+                    .Property(y => y.CourseName).UsesColumnNamed("Course Name")
+                    .Property(y => y.UnsplitQuizName).UsesColumnNamed("Quiz Name")
+                    .Property(y => y.QuestionNumber).UsesColumnNamed("Question Number")
+                    .Property(y => y.QuestionText).UsesColumnNamed("Question")
+                    .Property(y => y.Answer1).UsesColumnNamed("Answer 1")
+                    .Property(y => y.Answer2).UsesColumnNamed("Answer 2")
+                    .Property(y => y.Answer3).UsesColumnNamed("Answer 3")
+                    .Property(y => y.Answer4).UsesColumnNamed("Answer 4")
+                    .Property(y => y.Answer5).UsesColumnNamed("Answer 5")
+                    .Property(y => y.CorrectAnswer).UsesColumnNamed("Correct Answer")
+                    .Property(y => y.QuizQuestionImage).UsesColumnNamed("Quiz Question Image")
+                    .Property(y => y.TruncatedQuizName).Ignore()
+                    .Property(y => y.QuizNames).Ignore()
+                    ).ToList();
+            }
+            catch (Exception e)
+            {
+                FailedToReadSpreadsheet(e);
+                throw;
+            }
         }
 
         private static List<Lesson> GetLessons(List<Quiz> quizzes)
         {
-            var lessons = new List<Lesson>();
-            foreach (var quiz in quizzes)
+            try
             {
-                lessons.Add(new Lesson { CourseName = quiz.CourseName, Name = quiz.LessonName });
+                var lessons = new List<Lesson>();
+                foreach (var quiz in quizzes)
+                {
+                    lessons.Add(new Lesson { CourseName = quiz.CourseName, Name = quiz.LessonName });
+                }
+                return lessons;
             }
-            return lessons;
+            catch (Exception e)
+            {
+                FailedToReadSpreadsheet(e);
+                throw;
+            }
         }
 
         private static List<Quiz> GetQuizzes(string filePath)
         {
-            return filePath.ExcelToEnumerable<Quiz>(
-            x => x.UsingSheet("Course to Lesson to Quiz FTO")
-            .Property(y => y.Name).UsesColumnNamed("Quiz Name")
-            .Property(y => y.CourseName).UsesColumnNamed("Course Name")
-            .Property(y => y.LessonName).UsesColumnNamed("Lesson Name")
-            .Property(y => y.PassPercentage).UsesColumnNamed("Pass Percentage")
-            .Property(y => y.Author).Ignore()
-            ).ToList();
+            try
+            {
+                return filePath.ExcelToEnumerable<Quiz>(
+                    x => x.UsingSheet("Course to Lesson to Quiz FTO")
+                    .Property(y => y.Name).UsesColumnNamed("Quiz Name")
+                    .Property(y => y.CourseName).UsesColumnNamed("Course Name")
+                    .Property(y => y.LessonName).UsesColumnNamed("Lesson Name")
+                    .Property(y => y.PassPercentage).UsesColumnNamed("Pass Percentage")
+                    .Property(y => y.Author).Ignore()
+                    ).ToList();
+            }
+            catch (Exception e)
+            {
+                FailedToReadSpreadsheet(e);
+                throw;
+            }
         }
 
-        //private static string ScrubVersions(string quizName, string name)
-        //{
-        //    if (!name.Contains(","))
-        //    {
-        //        return name;
-        //    }
-        //    else
-        //    {
-        //        if (quizName.Contains("LV"))
-        //        {
-        //            var names = name.Split(',');
-        //            name = names.Where(x => x.Contains("LV")).FirstOrDefault();
-        //        }
-        //        else if (quizName.Contains("SV"))
-        //        {
-        //            var names = name.Split(',');
-        //            name = names.Where(x => x.Contains("SV")).FirstOrDefault();
-        //        }
-        //    }
-        //    return name;
-        //}
+        public static void FailedToReadSpreadsheet(Exception e)
+        {
+            Console.WriteLine($"There was an error reading the spreadsheet. This may be due to incorrect column names");
+            Console.WriteLine($"See message: {e.Message}");
+            Environment.Exit(-1);
+        }
     }
 }
