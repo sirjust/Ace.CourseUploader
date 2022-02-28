@@ -44,15 +44,23 @@ namespace Ace.CourseUploader.Web
                 CreateQuiz(quiz);
             }
 
-            for (int i = 0; i < 10; i++)
+            foreach (var question in package.Questions)
             {
-                CreateQuestion(package.Questions[i]);
+                CreateQuestion(question);
             }
 
-            //uploader.CreateCourse(reader.UploadPackage.Courses[0]);
-            //uploader.CreateLesson(reader.UploadPackage.Lessons[0]);
-            //uploader.CreateQuiz(reader.UploadPackage.Quizzes[0]);
-            //uploader.CreateQuestion(reader.UploadPackage.Questions[0]);
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    CreateQuestion(package.Questions[i]);
+            //}
+
+            //CreateCourse(package.Courses[0]);
+            //CreateCourse(package.Courses[1]);
+            //CreateLesson(package.Lessons[0]);
+            //CreateLesson(package.Lessons[6]);
+            //CreateQuiz(package.Quizzes[0]);
+            //CreateQuiz(package.Quizzes[6]);
+            //CreateQuestion(package.Questions[0]);
         }
 
         public void Login()
@@ -68,6 +76,7 @@ namespace Ace.CourseUploader.Web
 
         public void CreateCourse(Course course)
         {
+
             Console.WriteLine($"Creating course with name {course.CourseName}");
             _driver.Url = _configuration["NewCourseUrl"];
 
@@ -269,11 +278,12 @@ namespace Ace.CourseUploader.Web
             return true;
         }
 
-        public bool ValidateUniqueNames(UploadPackage uploadPackage)
+        public void ValidateUniqueNames(UploadPackage uploadPackage)
         {
-            return AllCoursesUnique(uploadPackage.Courses) &&
-                AllLessonsUnique(uploadPackage.Lessons) &&
-                AllQuizzesUnique(uploadPackage.Quizzes);
+            if (AllCoursesUnique(uploadPackage.Courses) &&
+            AllLessonsUnique(uploadPackage.Lessons) &&
+            AllQuizzesUnique(uploadPackage.Quizzes)) return;
+            else throw new Exception("All courses, lessons, and quizzes must be unique. See message above and fix spreadsheet");
         }
     }
 }

@@ -10,6 +10,6 @@ namespace Ace.CourseUploader.Web
         void CreateQuiz(Quiz quiz);
         void CreateQuestion(Question question);
         void UploadAllMaterials(UploadPackage package);
-        bool ValidateUniqueNames(UploadPackage uploadPackage);
+        void ValidateUniqueNames(UploadPackage uploadPackage);
     }
 }

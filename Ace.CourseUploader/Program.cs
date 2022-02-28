@@ -2,6 +2,7 @@
 using Ace.CourseUploader.Data.Models;
 using Ace.CourseUploader.Data.Validation;
 using Ace.CourseUploader.Web;
+using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenQA.Selenium;
@@ -16,6 +17,27 @@ namespace Ace.CourseUploader
     {
         static void Main(string[] args)
         {
+            var questionsOnly = false;
+            CommandLine.Parser.Default.ParseArguments<Options>(args)
+            .WithParsed(o => {
+                if (o.Questions == null) { }
+                else if (o.Questions.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    questionsOnly = true;
+                }
+                else if (o.Questions.Equals("N", StringComparison.OrdinalIgnoreCase))
+                {
+
+                }
+                else
+                {
+                    throw new Exception("Incorrect command line arguments, try running --help");
+                }
+            })
+            .WithNotParsed(e => {
+                throw new Exception("Incorrect command line arguments, try running --help");
+            });
+
             var host = CreateHostBuilder(args).Build();
             
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
@@ -40,8 +62,18 @@ namespace Ace.CourseUploader
             try
             {
                 uploader.Login();
-                uploader.ValidateUniqueNames(reader.UploadPackage);
-                uploader.UploadAllMaterials(reader.UploadPackage);
+                if (questionsOnly)
+                {
+                    foreach(var question in reader.UploadPackage.Questions)
+                    {
+                        uploader.CreateQuestion(question);
+                    }
+                } else
+                {
+                    uploader.ValidateUniqueNames(reader.UploadPackage);
+                    uploader.UploadAllMaterials(reader.UploadPackage);
+                }
+                Console.WriteLine("Upload successful");
             }
             catch(Exception e)
             {
