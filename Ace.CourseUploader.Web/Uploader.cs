@@ -5,7 +5,10 @@ using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security;
 using System.Threading;
 
 namespace Ace.CourseUploader.Web
@@ -22,8 +25,8 @@ namespace Ace.CourseUploader.Web
             _wait = wait;
 
             _configuration = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddUserSecrets<Uploader>()
+            .SetBasePath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
         }
 
@@ -63,15 +66,24 @@ namespace Ace.CourseUploader.Web
             //CreateQuestion(package.Questions[0]);
         }
 
-        public void Login()
+        public void Login(string user, SecureString pw)
         {
-            _driver.Manage().Window.Maximize();
-            _driver.Url = _configuration["LoginUrl"];
+            try
+            {
+                _driver.Manage().Window.Maximize();
+                _driver.Url = _configuration["LoginUrl"];
 
-            _driver.FindElement(By.Id("user_login")).SendKeys(_configuration["Id"]);
-            _driver.FindElement(By.Id("user_pass")).SendKeys(_configuration["Password"]);
+                _driver.FindElement(By.Id("user_login")).SendKeys(user);
+                var word = pw.ToString();
+                _driver.FindElement(By.Id("user_pass")).SendKeys(Utilities.Security.SecureStringToString(pw));
 
-            _driver.FindElement(By.Id("wp-submit")).Click();
+                _driver.FindElement(By.Id("wp-submit")).Click();
+            }
+
+            catch
+            {
+                throw new Exception("Could not log in. Check credentials");
+            }
         }
 
         public void CreateCourse(Course course)
@@ -190,7 +202,7 @@ namespace Ace.CourseUploader.Web
 
         public bool AllCoursesUnique(List<Course> courses)
         {
-            Console.WriteLine($"Checking all courses. Each new course should have a unique name");
+            Console.WriteLine($"\nChecking all courses. Each new course should have a unique name");
             _driver.Url = _configuration["ListCoursesUrl"];
 
             var list = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
