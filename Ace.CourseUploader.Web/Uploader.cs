@@ -52,11 +52,6 @@ namespace Ace.CourseUploader.Web
                 CreateQuestion(question);
             }
 
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    CreateQuestion(package.Questions[i]);
-            //}
-
             //CreateCourse(package.Courses[0]);
             //CreateCourse(package.Courses[1]);
             //CreateLesson(package.Lessons[0]);
@@ -64,26 +59,24 @@ namespace Ace.CourseUploader.Web
             //CreateQuiz(package.Quizzes[0]);
             //CreateQuiz(package.Quizzes[6]);
             //CreateQuestion(package.Questions[0]);
+
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    CreateQuestion(package.Questions[i]);
+            //}
         }
 
         public void Login(string user, SecureString pw)
         {
-            try
-            {
-                _driver.Manage().Window.Maximize();
-                _driver.Url = _configuration["LoginUrl"];
 
-                _driver.FindElement(By.Id("user_login")).SendKeys(user);
-                var word = pw.ToString();
-                _driver.FindElement(By.Id("user_pass")).SendKeys(Utilities.Security.SecureStringToString(pw));
+            _driver.Manage().Window.Maximize();
+            _driver.Url = _configuration["LoginUrl"];
 
-                _driver.FindElement(By.Id("wp-submit")).Click();
-            }
+            _driver.FindElement(By.Id("user_login")).SendKeys(user);
+            _driver.FindElement(By.Id("user_pass")).SendKeys(Utilities.Security.SecureStringToString(pw));
+            _driver.FindElement(By.Id("wp-submit")).Click();
 
-            catch
-            {
-                throw new Exception("Could not log in. Check credentials");
-            }
+            if(_driver.Url == _configuration["LoginUrl"]) throw new Exception("Could not log in. Check credentials");
         }
 
         public void CreateCourse(Course course)
@@ -164,8 +157,6 @@ namespace Ace.CourseUploader.Web
                 answerCount--;
             }
 
-            // _driver.FindElement(By.CssSelector(".answerList.ui-sortable"))
-
             var textareas = _driver.FindElements(By.CssSelector(".large-text.wpProQuiz_text"));
 
             // It appears the first textarea is inactive, so we start with element 1, but the answers are still 0-based
@@ -202,7 +193,7 @@ namespace Ace.CourseUploader.Web
 
         public bool AllCoursesUnique(List<Course> courses)
         {
-            Console.WriteLine($"\nChecking all courses. Each new course should have a unique name");
+            Console.WriteLine($"Checking all courses. Each new course should have a unique name");
             _driver.Url = _configuration["ListCoursesUrl"];
 
             var list = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();

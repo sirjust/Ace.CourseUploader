@@ -8,6 +8,7 @@ namespace Ace.CourseUploader.Data.Validation
     {
         public Tuple<ValidationResponse<Course>, ValidationResponse<Lesson>, ValidationResponse<Quiz>, ValidationResponse<Question>> ValidateSpreadsheet(UploadPackage package)
         {
+            Console.WriteLine("Validating spreadsheet");
             var courseValidation = AreCoursesValid(package.Courses);
             var lessonValidation = AreLessonsValid(package.Lessons);
             var quizValidation = AreQuizzesValid(package.Quizzes);

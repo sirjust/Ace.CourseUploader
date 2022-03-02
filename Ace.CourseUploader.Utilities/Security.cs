@@ -30,6 +30,7 @@ namespace Ace.CourseUploader.Utilities
                     Console.Write("*");
                 }
             }
+            Console.WriteLine();
             return pwd;
         }
 

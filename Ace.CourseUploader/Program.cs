@@ -43,7 +43,7 @@ namespace Ace.CourseUploader
             var reader = (ISpreadsheetReader)host.Services.GetService(typeof(ISpreadsheetReader));
             var validator = (ISpreadsheetValidator)host.Services.GetService(typeof(ISpreadsheetValidator));
 
-            reader.ReadSpreadsheet(".\\Course Upload TEST.xlsx");
+            reader.ReadSpreadsheet(".\\Course Uploads.xlsx");
             var validationResponse = validator.ValidateSpreadsheet(reader.UploadPackage);
 
             // Check whether the spreadsheet is valid
