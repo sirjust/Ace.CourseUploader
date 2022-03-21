@@ -12,5 +12,6 @@ namespace Ace.CourseUploader.Web
         void CreateQuestion(Question question);
         void UploadAllMaterials(UploadPackage package);
         void ValidateUniqueNames(UploadPackage uploadPackage);
+        void MinimizeWindow();
     }
 }

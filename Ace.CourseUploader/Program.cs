@@ -59,6 +59,8 @@ namespace Ace.CourseUploader
             // Upload the data in the spreasheet
             IUploader uploader = (IUploader)host.Services.GetService(typeof(IUploader));
 
+
+            uploader.MinimizeWindow();
             Console.Write("Enter username: ");
             string user = Console.ReadLine();
             Console.Write("Enter password: ");

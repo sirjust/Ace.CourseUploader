@@ -291,5 +291,10 @@ namespace Ace.CourseUploader.Web
             AllQuizzesUnique(uploadPackage.Quizzes)) return;
             else throw new Exception("All courses, lessons, and quizzes must be unique. See message above and fix spreadsheet");
         }
+
+        public void MinimizeWindow()
+        {
+            _driver.Manage().Window.Minimize();
+        }
     }
 }
