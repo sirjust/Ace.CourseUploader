@@ -16,8 +16,4 @@
     <ProjectReference Include="..\Ace.CourseUploader.Utilities\Ace.CourseUploader.Utilities.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-  </ItemGroup>
-
 </Project>

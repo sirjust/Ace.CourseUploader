@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Ace.CourseUploader": {
+      "commandName": "Project"
+    },
+    "QuestionsOnly": {
+      "commandName": "Project",
+      "commandLineArgs": "-q Y"
+    }
+  }
+}

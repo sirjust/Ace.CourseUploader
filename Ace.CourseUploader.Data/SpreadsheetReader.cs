@@ -39,14 +39,21 @@ namespace Ace.CourseUploader.Data
         {
             try
             {
-                return filePath.ExcelToEnumerable<Course>(
-            x => x
-            .Property(y => y.CourseName).UsesColumnNamed("Course Name")
-            .Property(y => y.ProductName).UsesColumnNamed("Product Name")
-            .Property(y => y.StudentQuizFileName).UsesColumnNamed("Student Quiz File Name")
-            .Property(y => y.Category).Ignore()
-            .Property(y => y.Author).Ignore()
-            ).ToList();
+                var courses = filePath.ExcelToEnumerable<Course>(
+                x => x
+                .Property(y => y.CourseName).UsesColumnNamed("Course Name")
+                .Property(y => y.ProductName).UsesColumnNamed("Product Name")
+                .Property(y => y.StudentQuizFileName).UsesColumnNamed("Student Quiz File Name")
+                .Property(y => y.Category).Ignore()
+                .Property(y => y.Author).Ignore()
+                ).ToList();
+
+                if (!CourseNamesUnique(courses))
+                {
+                    throw new ApplicationException("One or more courses within the spreadsheet are not unique");
+                }
+
+                return courses;
             }
             catch(Exception e)
             {
@@ -128,6 +135,12 @@ namespace Ace.CourseUploader.Data
             Console.WriteLine($"There was an error reading the spreadsheet. This may be due to incorrect column names");
             Console.WriteLine($"See message: {e.Message}");
             Environment.Exit(-1);
+        }
+
+        public static bool CourseNamesUnique(List<Course> courses)
+        {
+            var names = courses.Select(x => x.CourseName);
+            return names.Count() == names.Distinct().Count();
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using Ace.CourseUploader.Data.Models;
-using Microsoft.Extensions.Configuration;
+using Ace.CourseUploader.Utilities;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security;
 using System.Threading;
 
@@ -17,17 +15,11 @@ namespace Ace.CourseUploader.Web
     {
         IWebDriver _driver;
         WebDriverWait _wait;
-        IConfiguration _configuration;
 
         public Uploader(IWebDriver driver, WebDriverWait wait)
         {
             _driver = driver;
             _wait = wait;
-
-            _configuration = new ConfigurationBuilder()
-            .SetBasePath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
         }
 
         public void UploadAllMaterials(UploadPackage package)
@@ -70,20 +62,20 @@ namespace Ace.CourseUploader.Web
         {
 
             _driver.Manage().Window.Maximize();
-            _driver.Url = _configuration["LoginUrl"];
+            _driver.Url = Urls.LoginUrl;
 
             _driver.FindElement(By.Id("user_login")).SendKeys(user);
             _driver.FindElement(By.Id("user_pass")).SendKeys(Utilities.Security.SecureStringToString(pw));
             _driver.FindElement(By.Id("wp-submit")).Click();
 
-            if(_driver.Url == _configuration["LoginUrl"]) throw new Exception("Could not log in. Check credentials");
+            if(_driver.Url == Urls.LoginUrl) throw new Exception("Could not log in. Check credentials");
         }
 
         public void CreateCourse(Course course)
         {
 
             Console.WriteLine($"Creating course with name {course.CourseName}");
-            _driver.Url = _configuration["NewCourseUrl"];
+            _driver.Url = Urls.NewCourseUrl;
 
             _driver.FindElement(By.Id("title")).SendKeys(course.CourseName);
             _driver.FindElement(By.Id("publish")).Click();
@@ -91,8 +83,8 @@ namespace Ace.CourseUploader.Web
 
         public void CreateLesson(Lesson lesson)
         {
-            Console.WriteLine($"Creating lesson with name {lesson.CourseName}");
-            _driver.Url = _configuration["NewLessonUrl"];
+            Console.WriteLine($"Creating lesson with name {lesson.FullLessonName}");
+            _driver.Url = Urls.NewLessonUrl;
 
             _driver.FindElement(By.Id("title")).SendKeys(lesson.Name);
             _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
@@ -105,7 +97,7 @@ namespace Ace.CourseUploader.Web
         public void CreateQuiz(Quiz quiz)
         {
             Console.WriteLine($"Creating quiz with name {quiz.Name}");
-            _driver.Url = _configuration["NewQuizUrl"];
+            _driver.Url = Urls.NewQuizUrl;
 
             _driver.FindElement(By.Id("title")).SendKeys(quiz.Name);
 
@@ -141,7 +133,7 @@ namespace Ace.CourseUploader.Web
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
 
-            _driver.Url = _configuration["NewQuestionUrl"];
+            _driver.Url = Urls.NewQuestionUrl;
 
             _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
             _driver.FindElement(By.ClassName("wp-editor-area")).Click();
@@ -175,17 +167,28 @@ namespace Ace.CourseUploader.Web
             }
 
             var correctButtons = _driver.FindElements(By.CssSelector(".wpProQuiz_classCorrect.wpProQuiz_checkbox"));
-            correctButtons[Convert.ToInt32(question.CorrectAnswer) - 1].Click();
+
+            Actions actions = new Actions(_driver);
+            var correct = correctButtons[Convert.ToInt32(question.CorrectAnswer) - 1];
+
+            IJavaScriptExecutor ex = (IJavaScriptExecutor)_driver;
+            ex.ExecuteScript("arguments[0].click()", correct);
 
             // This matches a question to all its quizzes
             var selectElement = new SelectElement(_driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']")));
             foreach (var quiz in question.QuizNames)
             {
-                selectElement.SelectByText(quiz);
+                try
+                {
+                    selectElement.SelectByText(quiz);
+                }
+                catch
+                {
+                    throw new ApplicationException($"Cannot insert question into quiz {quiz}. The quiz doesn't seem to exist.");
+                }
             }
 
             var element = _driver.FindElement(By.Id("publish"));
-            Actions actions = new Actions(_driver);
             actions.MoveToElement(element);
             actions.Perform();
             element.Click();
@@ -194,7 +197,7 @@ namespace Ace.CourseUploader.Web
         public bool AllCoursesUnique(List<Course> courses)
         {
             Console.WriteLine($"Checking all courses. Each new course should have a unique name");
-            _driver.Url = _configuration["ListCoursesUrl"];
+            _driver.Url = Urls.ListCoursesUrl;
 
             var list = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
 
@@ -212,7 +215,7 @@ namespace Ace.CourseUploader.Web
         public bool AllLessonsUnique(List<Lesson> lessons)
         {
             Console.WriteLine($"Checking all lessons. Each new lesson should have a unique name");
-            _driver.Url = _configuration["ListLessonsUrl"];
+            _driver.Url = Urls.ListLessonsUrl;
 
             var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
             var courseNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .course > a")).ToList();
@@ -246,7 +249,7 @@ namespace Ace.CourseUploader.Web
         public bool AllQuizzesUnique(List<Quiz> quizzes)
         {
             Console.WriteLine($"Checking all quizzes. Each new quiz should have a unique mapping to a lesson and course");
-            _driver.Url = _configuration["ListQuizzesUrl"];
+            _driver.Url = Urls.ListQuizzesUrl;
 
             var quizNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
             var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .lesson_topic > a")).ToList();
