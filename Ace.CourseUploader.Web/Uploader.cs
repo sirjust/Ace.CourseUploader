@@ -60,7 +60,6 @@ namespace Ace.CourseUploader.Web
 
         public void Login(string user, SecureString pw)
         {
-
             _driver.Manage().Window.Maximize();
             _driver.Url = Urls.LoginUrl;
 
@@ -132,11 +131,14 @@ namespace Ace.CourseUploader.Web
         public void CreateQuestion(Question question)
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
-
+            Actions actions = new Actions(_driver);
             _driver.Url = Urls.NewQuestionUrl;
 
             _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
-            _driver.FindElement(By.ClassName("wp-editor-area")).Click();
+
+            var editorElement = _driver.FindElement(By.ClassName("wp-editor-area"));
+            actions.MoveToElement(editorElement);
+            actions.Perform();
             _driver.FindElement(By.ClassName("wp-editor-area")).SendKeys(question.QuestionText);
 
             // We need to click the `Add new answer` button so all the text fields are revealed. There is already one field visible, hence the subtraction
@@ -168,7 +170,6 @@ namespace Ace.CourseUploader.Web
 
             var correctButtons = _driver.FindElements(By.CssSelector(".wpProQuiz_classCorrect.wpProQuiz_checkbox"));
 
-            Actions actions = new Actions(_driver);
             var correct = correctButtons[Convert.ToInt32(question.CorrectAnswer) - 1];
 
             IJavaScriptExecutor ex = (IJavaScriptExecutor)_driver;
