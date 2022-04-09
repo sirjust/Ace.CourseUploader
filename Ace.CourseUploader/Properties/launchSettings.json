@@ -5,7 +5,19 @@
     },
     "QuestionsOnly": {
       "commandName": "Project",
-      "commandLineArgs": "-q Y"
+      "commandLineArgs": "-o questions"
+    },
+    "CoursesOnly": {
+      "commandName": "Project",
+      "commandLineArgs": "--only courses"
+    },
+    "LessonsOnly": {
+      "commandName": "Project",
+      "commandLineArgs": "--only lessons"
+    },
+    "QuizzesOnly": {
+      "commandName": "Project",
+      "commandLineArgs": "-o quizzes"
     }
   }
 }

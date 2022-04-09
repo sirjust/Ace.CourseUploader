@@ -17,17 +17,26 @@ namespace Ace.CourseUploader
     {
         static void Main(string[] args)
         {
-            var questionsOnly = false;
+            bool coursesOnly = false, lessonsOnly = false, quizzesOnly = false, questionsOnly = false;
+
             CommandLine.Parser.Default.ParseArguments<Options>(args)
             .WithParsed(o => {
-                if (o.Questions == null) { }
-                else if (o.Questions.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                if (o.Only == null) { }
+                else if (o.Only.Equals("courses", StringComparison.OrdinalIgnoreCase))
+                {
+                    coursesOnly = true;
+                }
+                else if (o.Only.Equals("lessons", StringComparison.OrdinalIgnoreCase))
+                {
+                    lessonsOnly = true;
+                }
+                else if (o.Only.Equals("quizzes", StringComparison.OrdinalIgnoreCase))
+                {
+                    quizzesOnly = true;
+                }
+                else if (o.Only.Equals("questions", StringComparison.OrdinalIgnoreCase))
                 {
                     questionsOnly = true;
-                }
-                else if (o.Questions.Equals("N", StringComparison.OrdinalIgnoreCase))
-                {
-
                 }
                 else
                 {
@@ -69,7 +78,29 @@ namespace Ace.CourseUploader
             try
             {
                 uploader.Login(user, pw);
-                if (questionsOnly)
+
+                if (coursesOnly)
+                {
+                    foreach (var course in reader.UploadPackage.Courses)
+                    {
+                        uploader.CreateCourse(course);
+                    }
+                }
+                else if (lessonsOnly)
+                {
+                    foreach (var lesson in reader.UploadPackage.Lessons)
+                    {
+                        uploader.CreateLesson(lesson);
+                    }
+                }
+                else if (quizzesOnly)
+                {
+                    foreach (var quiz in reader.UploadPackage.Quizzes)
+                    {
+                        uploader.CreateQuiz(quiz);
+                    }
+                }
+                else if (questionsOnly)
                 {
                     foreach(var question in reader.UploadPackage.Questions)
                     {
