@@ -61,7 +61,7 @@ namespace Ace.CourseUploader.Web
         public void Login(string user, SecureString pw)
         {
             _driver.Manage().Window.Maximize();
-            _driver.Url = Urls.LoginUrl;
+            OpenUrl(Urls.LoginUrl);
 
             _driver.FindElement(By.Id("user_login")).SendKeys(user);
             _driver.FindElement(By.Id("user_pass")).SendKeys(Utilities.Security.SecureStringToString(pw));
@@ -74,7 +74,7 @@ namespace Ace.CourseUploader.Web
         {
 
             Console.WriteLine($"Creating course with name {course.CourseName}");
-            _driver.Url = Urls.NewCourseUrl;
+            OpenUrl(Urls.NewCourseUrl);
 
             try
             {
@@ -83,6 +83,7 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
+                Console.WriteLine($"Something went wrong uploading{course.CourseName}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }
@@ -91,7 +92,7 @@ namespace Ace.CourseUploader.Web
         public void CreateLesson(Lesson lesson)
         {
             Console.WriteLine($"Creating lesson with name {lesson.FullLessonName}");
-            _driver.Url = Urls.NewLessonUrl;
+            OpenUrl(Urls.NewLessonUrl);
 
             try
             {
@@ -104,6 +105,7 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
+                Console.WriteLine($"Something went wrong uploading{lesson.FullLessonName}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }
@@ -112,7 +114,7 @@ namespace Ace.CourseUploader.Web
         public void CreateQuiz(Quiz quiz)
         {
             Console.WriteLine($"Creating quiz with name {quiz.Name}");
-            _driver.Url = Urls.NewQuizUrl;
+            OpenUrl(Urls.NewQuizUrl);
 
             try
             {
@@ -145,6 +147,7 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
+                Console.WriteLine($"Something went wrong uploading{quiz.Name}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }
@@ -154,7 +157,7 @@ namespace Ace.CourseUploader.Web
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
             Actions actions = new Actions(_driver);
-            _driver.Url = Urls.NewQuestionUrl;
+            OpenUrl(Urls.NewQuestionUrl);
 
             _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
 
@@ -207,7 +210,8 @@ namespace Ace.CourseUploader.Web
                 }
                 catch
                 {
-                    throw new ApplicationException($"Cannot insert question into quiz {quiz}. The quiz doesn't seem to exist.");
+                    Console.WriteLine($"Cannot insert question into quiz {quiz}. The quiz doesn't seem to exist. Attempting to continue...");
+                    return;
                 }
             }
 
@@ -220,7 +224,7 @@ namespace Ace.CourseUploader.Web
         public bool AllCoursesUnique(List<Course> courses)
         {
             Console.WriteLine($"Checking all courses. Each new course should have a unique name");
-            _driver.Url = Urls.ListCoursesUrl;
+            OpenUrl(Urls.ListCoursesUrl);
 
             var list = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
 
@@ -238,7 +242,7 @@ namespace Ace.CourseUploader.Web
         public bool AllLessonsUnique(List<Lesson> lessons)
         {
             Console.WriteLine($"Checking all lessons. Each new lesson should have a unique name");
-            _driver.Url = Urls.ListLessonsUrl;
+            OpenUrl(Urls.ListLessonsUrl);
 
             var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
             var courseNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .course > a")).ToList();
@@ -272,7 +276,7 @@ namespace Ace.CourseUploader.Web
         public bool AllQuizzesUnique(List<Quiz> quizzes)
         {
             Console.WriteLine($"Checking all quizzes. Each new quiz should have a unique mapping to a lesson and course");
-            _driver.Url = Urls.ListQuizzesUrl;
+            OpenUrl(Urls.ListQuizzesUrl);
 
             var quizNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .title > strong > a")).ToList();
             var lessonNameElements = _driver.FindElements(By.CssSelector("#the-list > tr > .lesson_topic > a")).ToList();
@@ -318,6 +322,25 @@ namespace Ace.CourseUploader.Web
         public void MinimizeWindow()
         {
             _driver.Manage().Window.Minimize();
+        }
+
+        public void OpenUrl(string url)
+        {
+            _driver.Url = url;
+
+            try
+            {
+                // Check the presence of alert
+                var alert = _driver.SwitchTo().Alert();
+
+                // if present consume the alert
+                alert.Accept();
+            }
+            catch (NoAlertPresentException e) { }
+
+            catch (Exception e) { Console.WriteLine(e.Message); }
+
+            return;
         }
     }
 }
