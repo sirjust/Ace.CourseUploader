@@ -1,5 +1,6 @@
 ﻿using Ace.CourseUploader.Data.Models;
 using ExcelToEnumerable;
+using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +41,7 @@ namespace Ace.CourseUploader.Data
             try
             {
                 var courses = filePath.ExcelToEnumerable<Course>(
-                x => x
+                x => x.UsingSheet("SKU-Product ID-Course ID")
                 .Property(y => y.CourseName).UsesColumnNamed("Course Name")
                 .Property(y => y.ProductName).UsesColumnNamed("Product Name")
                 .Property(y => y.StudentQuizFileName).UsesColumnNamed("Student Quiz File Name")
@@ -50,7 +51,8 @@ namespace Ace.CourseUploader.Data
 
                 if (!CourseNamesUnique(courses))
                 {
-                    throw new ApplicationException("One or more courses within the spreadsheet are not unique");
+                    courses = courses.DistinctBy(c => c.CourseName).ToList();
+                    //throw new ApplicationException("One or more courses within the spreadsheet are not unique");
                 }
 
                 return courses;
@@ -68,7 +70,7 @@ namespace Ace.CourseUploader.Data
             try
             {
                 return filePath.ExcelToEnumerable<Question>(
-                    x => x.UsingSheet("Quiz_Questions FOR TESTING ONLY")
+                    x => x.UsingSheet("Course-Lesson-Quiz-Questions")
 
                     .Property(y => y.CourseName).UsesColumnNamed("Course Name")
                     .Property(y => y.UnsplitQuizName).UsesColumnNamed("Quiz Name")
@@ -115,7 +117,7 @@ namespace Ace.CourseUploader.Data
             try
             {
                 return filePath.ExcelToEnumerable<Quiz>(
-                    x => x.UsingSheet("Course to Lesson to Quiz FTO")
+                    x => x.UsingSheet("Course-Lesson-Quiz-Pass%")
                     .Property(y => y.Name).UsesColumnNamed("Quiz Name")
                     .Property(y => y.CourseName).UsesColumnNamed("Course Name")
                     .Property(y => y.LessonName).UsesColumnNamed("Lesson Name")

@@ -125,7 +125,11 @@ namespace Ace.CourseUploader.Web
             //    count++;
             //}
 
-            _driver.FindElement(By.Id("publish")).Click();
+            Actions actions = new Actions(_driver);
+            var publishElement = _driver.FindElement(By.Id("publish"));
+            actions.MoveToElement(publishElement);
+            actions.Perform();
+            publishElement.Click();
         }
 
         public void CreateQuestion(Question question)
@@ -258,7 +262,7 @@ namespace Ace.CourseUploader.Web
 
             if (!(courseNameElements.Count == lessonNameElements.Count && lessonNameElements.Count == quizNameElements.Count))
             {
-                var error = "It appears not every quiz is mapped to a course. In order to proceed, all current lessons must be mapped to a course";
+                var error = "It appears not every quiz is mapped to a course. In order to proceed, all current quizzes must be mapped to a course and lesson";
                 throw new Exception(error);
             }
 
