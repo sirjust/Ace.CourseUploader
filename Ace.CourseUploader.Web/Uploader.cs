@@ -74,8 +74,15 @@ namespace Ace.CourseUploader.Web
         {
 
             Console.WriteLine($"Creating course with name {course.CourseName}");
-            OpenUrl(Urls.NewCourseUrl);
+            OpenUrl(Urls.ListCoursesUrl);
 
+            if (CourseAlreadyExists(course.CourseName)) 
+            {
+                Console.WriteLine($"Course {course.CourseName} already exists. Skipping creation...");
+                return;
+            }
+
+            OpenUrl(Urls.NewCourseUrl);
             try
             {
                 _driver.FindElement(By.Id("title")).SendKeys(course.CourseName);
@@ -83,10 +90,28 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Something went wrong uploading{course.CourseName}. See message below. Attempting to continue...");
+                Console.WriteLine($"Something went wrong uploading {course.CourseName}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }
+        }
+
+        private bool CourseAlreadyExists(string courseName)
+        {
+            var exists = false;
+            try
+            {
+                _driver.FindElement(By.Id("post-search-input")).SendKeys(courseName);
+                _driver.FindElement(By.Id("search-submit")).Click();
+
+                var element = _driver.FindElement(By.CssSelector("#the-list > tr > td"));
+                if (!(element.Text == "No Courses found")) exists = true;
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return exists;
         }
 
         public void CreateLesson(Lesson lesson)
@@ -105,7 +130,7 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Something went wrong uploading{lesson.FullLessonName}. See message below. Attempting to continue...");
+                Console.WriteLine($"Something went wrong uploading {lesson.FullLessonName}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }
@@ -147,7 +172,7 @@ namespace Ace.CourseUploader.Web
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Something went wrong uploading{quiz.Name}. See message below. Attempting to continue...");
+                Console.WriteLine($"Something went wrong uploading {quiz.Name}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
                 return;
             }

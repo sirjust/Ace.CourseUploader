@@ -10,19 +10,25 @@ When the program starts up, it will open a Chrome window which may obscure the c
 
 The program requires an excel spreadsheet, entitled `Course Uploads.xslx` in the same directory. The first step it takes is to read this spreadsheet. The format of this spreadsheet is very specific. If it exhibits any errors while reading, consult with the programmer or project manager.
 
-The uploader has the capability to upload only questions. The rationale behind this is that the questions are the most complex of the upload materials. The use case would be that all courses, lessons, and quizzes have completed, but one of the questions ran into an error and the program stopped.
+The uploader creates courses, lessons, quizzes, and questions in the web application. It now has the ability to single out one of any of these for a more targeted upload. An example use case would be that all courses, lessons, and quizzes have completed, but one of the questions ran into an error and the program stopped.
 
-To run only questions, type the following in the command line
+The flag is called only, and can be accessed by typing `-o` or `--only`
+
+To run only courses, type the following in the command line
 
 ```console
-Ace.CourseUploader.exe -q Y
+Ace.CourseUploader.exe -o courses
 ```
 
 If using Powershell, type
 
 ```powershell
-.\Ace.CourseUploader.exe -q Y
+.\Ace.CourseUploader.exe -o courses
 ```
+
+The other options are lessons, quizzes, and questions
+
+If you don't use the flag, it will upload the whole package.
 
 ## License
 
