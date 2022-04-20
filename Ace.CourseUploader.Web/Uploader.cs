@@ -126,7 +126,14 @@ namespace Ace.CourseUploader.Web
                 _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click();
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{lesson.CourseName}']"))).Click();
 
-                _driver.FindElement(By.Id("publish")).Click();
+                IJavaScriptExecutor js = (IJavaScriptExecutor)_driver;
+                js.ExecuteScript("window.scrollTo(0, 0)");
+
+                Actions actions = new Actions(_driver);
+                var publishElement = _driver.FindElement(By.Id("publish"));
+                actions.MoveToElement(publishElement);
+                actions.Perform();
+                publishElement.Click();
             }
             catch(Exception e)
             {
@@ -184,7 +191,8 @@ namespace Ace.CourseUploader.Web
             Actions actions = new Actions(_driver);
             OpenUrl(Urls.NewQuestionUrl);
 
-            _driver.FindElement(By.Id("title")).SendKeys($"{question.TruncatedQuizName} Question {question.QuestionNumber}");
+            _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText);
+            _driver.FindElement(By.Id("content-html")).Click();
 
             var editorElement = _driver.FindElement(By.ClassName("wp-editor-area"));
             actions.MoveToElement(editorElement);
