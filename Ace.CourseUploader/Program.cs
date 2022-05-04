@@ -130,6 +130,7 @@ namespace Ace.CourseUploader
             var ls = new List<string> { "enable-logging" };
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.AddExcludedArguments(ls);
+            chromeOptions.AddArgument(@"--incognito");
             var driver = new ChromeDriver(options: chromeOptions);
 
             services.AddSingleton<UploadPackage>();

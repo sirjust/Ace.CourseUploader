@@ -192,30 +192,57 @@ namespace Ace.CourseUploader.Web
             OpenUrl(Urls.NewQuestionUrl);
 
             _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText);
-            _driver.FindElement(By.Id("content-html")).Click();
 
-            var editorElement = _driver.FindElement(By.ClassName("wp-editor-area"));
+            var htmlButton = _driver.FindElement(By.Id("content-html"));
+            actions.MoveToElement(htmlButton);
+            actions.Perform();
+            htmlButton.Click();
+
+            var editorElement = _driver.FindElement(By.CssSelector("#content.wp-editor-area"));
             actions.MoveToElement(editorElement);
             actions.Perform();
-            _driver.FindElement(By.ClassName("wp-editor-area")).SendKeys(question.QuestionText);
+            editorElement.SendKeys(question.QuestionText);
 
             // We need to click the `Add new answer` button so all the text fields are revealed. There is already one field visible, hence the subtraction
             var answerCount = question.Answers.Count;
-            while (answerCount > 1)
+            // They have implemented a dropdown for answers; we need to open this up
+            var textareas = _driver.FindElements(By.CssSelector(".large-text.wpProQuiz_text"));
+            var maxAttempts = 3;
+
+            while (textareas.Count != answerCount + 1 && maxAttempts > 0)
             {
-                Thread.Sleep(1000);
-                var button = _wait.Until(d => d.FindElement(By.CssSelector(".classic_answer > .button-primary.addAnswer")));
-                button.Click();
-                answerCount--;
+                _driver.FindElement(By.CssSelector("#learndash_question_answers .handlediv")).Click();
+                maxAttempts--;
+
+                try
+                {
+                    while (answerCount > 1)
+                    {
+                        Thread.Sleep(200);
+                        var addAnswerButton = _driver.FindElement(By.CssSelector(".classic_answer > .button-primary.addAnswer"));
+                        actions.MoveToElement(addAnswerButton);
+                        actions.Perform();
+                        addAnswerButton.Click();
+                        answerCount--;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+
+                Thread.Sleep(200);
             }
 
-            var textareas = _driver.FindElements(By.CssSelector(".large-text.wpProQuiz_text"));
+            textareas = _driver.FindElements(By.CssSelector(".large-text.wpProQuiz_text"));
 
             // It appears the first textarea is inactive, so we start with element 1, but the answers are still 0-based
             for (int i = 1; i < textareas.Count; i++)
             {
                 try
                 {
+                    actions.MoveToElement(textareas[i]);
+                    actions.Perform();
                     textareas[i].Click();
                     textareas[i].SendKeys(question.Answers[i-1].Text);
                 }
@@ -234,7 +261,11 @@ namespace Ace.CourseUploader.Web
             ex.ExecuteScript("arguments[0].click()", correct);
 
             // This matches a question to all its quizzes
-            var selectElement = new SelectElement(_driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']")));
+            var quizSelectHtmlElement = _driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']"));
+            actions.MoveToElement(quizSelectHtmlElement);
+            actions.Perform();
+
+            var selectElement = new SelectElement(quizSelectHtmlElement);
             foreach (var quiz in question.QuizNames)
             {
                 try
