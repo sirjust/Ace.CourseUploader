@@ -122,16 +122,28 @@ namespace Ace.CourseUploader.Data.Validation
                     !string.IsNullOrEmpty(question.CourseName) &&
                     !string.IsNullOrEmpty(question.UnsplitQuizName) &&
                     question.QuestionNumber > 0)
-                {
-                    continue;
-                }
+                { }
                 else
                 {
                     return new ValidationResponse<Question>
                     {
                         IsValid = false,
                         ValidationObject = question,
-                        ValidationMessage = $"Question with text {question.QuestionText} is invalid. Check its properties in the spreadsheet"
+                        ValidationMessage = $"Question with text {question.QuestionText} is invalid. Check its properties in the spreadsheet."
+                    };
+                }
+
+                if (question.QuestionText.Contains(Environment.NewLine) || 
+                    question.QuestionText.Contains(@"<") ||
+                    question.QuestionText.Contains(@"\\n") ||
+                    question.QuestionText.Contains(@"\n") ||
+                    question.QuestionText.Contains('\n'))
+                {
+                    return new ValidationResponse<Question>
+                    {
+                        IsValid = false,
+                        ValidationObject = question,
+                        ValidationMessage = $"Question with text {question.QuestionText} has an invalid character (newline or html). Update it in the spreadsheet and try again."
                     };
                 }
             }
