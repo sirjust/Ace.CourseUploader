@@ -142,7 +142,8 @@ namespace Ace.CourseUploader.Web
                 _driver.FindElement(By.Id("title")).SendKeys(lesson.Name);
                 _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
 
-                _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click(); var searchField = _wait.Until(d => d.FindElement(By.ClassName("select2-search__field")));
+                _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click(); 
+                var searchField = _wait.Until(d => d.FindElement(By.ClassName("select2-search__field")));
                 searchField.SendKeys(TruncateAmpersandOrApostrophe(lesson.CourseName));
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{lesson.CourseName}']"))).Click();
 
@@ -201,11 +202,14 @@ namespace Ace.CourseUploader.Web
                 // Associate quiz to both lesson and course
                 _driver.FindElement(By.Id("tab-sfwd-quiz-settings")).Click();
                 _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_course-container")).Click();
+                var courseSearchField = _wait.Until(d => d.FindElement(By.CssSelector(".select2-container.select2-container--learndash.select2-container--open .select2-search__field")));
+                courseSearchField.SendKeys(TruncateAmpersandOrApostrophe(quiz.CourseName));
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.CourseName}']"))).Click();
 
                 Thread.Sleep(500); // Here the clicking may be too quick for it to populate
                 _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_lesson-container")).Click();
-
+                var lessonSearchField = _wait.Until(d => d.FindElement(By.CssSelector(".select2-container.select2-container--learndash.select2-container--open .select2-search__field")));
+                lessonSearchField.SendKeys(TruncateAmpersandOrApostrophe(quiz.LessonName));
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.LessonName}']"))).Click();
                 #endregion
 
@@ -236,7 +240,8 @@ namespace Ace.CourseUploader.Web
             Actions actions = new Actions(_driver);
             OpenUrl(Urls.NewQuestionUrl);
 
-            _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText.Substring(0, 10));
+            var lengthOfTitle = question.QuestionText.Length > 40 ? 40 : question.QuestionText.Length;
+            _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText.Substring(0, lengthOfTitle));
 
             var htmlButton = _driver.FindElement(By.Id("content-html"));
             actions.MoveToElement(htmlButton);
