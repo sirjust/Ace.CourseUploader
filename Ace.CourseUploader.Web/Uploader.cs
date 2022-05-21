@@ -92,7 +92,25 @@ namespace Ace.CourseUploader.Web
             {
                 Console.WriteLine($"Something went wrong uploading {course.CourseName}. See message below. Attempting to continue...");
                 Console.WriteLine(e.Message);
-                return;
+                // return;
+            }
+
+            // Check that the course is no longer a draft
+            try
+            {
+                OpenUrl(Urls.ListCoursesUrl);
+                var courseElement = _driver.FindElement(By.LinkText(course.CourseName));
+                var parent = courseElement.FindElement(By.XPath("./.."));
+                var draftElement = parent.FindElement(By.ClassName("post-state"));
+                if (draftElement.Text.Contains("Draft"))
+                {
+                    courseElement.Click();
+                    _driver.FindElement(By.Id("publish")).Click();
+                }
+            }
+            catch
+            {
+                // Didn't find "Draft" text, so it was successfully published
             }
         }
 
@@ -123,7 +141,9 @@ namespace Ace.CourseUploader.Web
             {
                 _driver.FindElement(By.Id("title")).SendKeys(lesson.Name);
                 _driver.FindElement(By.Id("tab-sfwd-lessons-settings")).Click();
-                _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click();
+
+                _driver.FindElement(By.CssSelector("#select2-learndash-lesson-access-settings_course-container")).Click(); var searchField = _wait.Until(d => d.FindElement(By.ClassName("select2-search__field")));
+                searchField.SendKeys(TruncateAmpersandOrApostrophe(lesson.CourseName));
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{lesson.CourseName}']"))).Click();
 
                 IJavaScriptExecutor js = (IJavaScriptExecutor)_driver;
@@ -141,6 +161,31 @@ namespace Ace.CourseUploader.Web
                 Console.WriteLine(e.Message);
                 return;
             }
+
+            // Check that the lesson is no longer a draft
+            //try
+            //{
+            //    OpenUrl(Urls.ListLessonsUrl);
+            //    var lessonElement = _driver.FindElement(By.LinkText(lesson.FullLessonName));
+            //    var parent = lessonElement.FindElement(By.XPath("./.."));
+            //    var draftElement = parent.FindElement(By.ClassName("post-state"));
+            //    if (draftElement.Text.Contains("Draft"))
+            //    {
+            //        lessonElement.Click();
+            //        _driver.FindElement(By.Id("publish")).Click();
+            //    }
+            //}
+            //catch
+            //{
+            //    // Didn't find "Draft" text, so it was successfully published
+            //}
+            //try
+            //{
+            //    _driver.Navigate().Refresh();
+            //    var publishElement = _driver.FindElement(By.Id("publish"));
+            //    publishElement.Click();
+            //}
+            //catch { }
         }
 
         public void CreateQuiz(Quiz quiz)
@@ -158,7 +203,7 @@ namespace Ace.CourseUploader.Web
                 _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_course-container")).Click();
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.CourseName}']"))).Click();
 
-                Thread.Sleep(1000); // Here the clicking may be too quick for it to populate
+                Thread.Sleep(500); // Here the clicking may be too quick for it to populate
                 _driver.FindElement(By.Id("select2-learndash-quiz-access-settings_lesson-container")).Click();
 
                 _wait.Until(d => d.FindElement(By.XPath($"//li[text() = '{quiz.LessonName}']"))).Click();
@@ -191,7 +236,7 @@ namespace Ace.CourseUploader.Web
             Actions actions = new Actions(_driver);
             OpenUrl(Urls.NewQuestionUrl);
 
-            _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText);
+            _driver.FindElement(By.Id("title")).SendKeys(question.QuestionText.Substring(0, 10));
 
             var htmlButton = _driver.FindElement(By.Id("content-html"));
             actions.MoveToElement(htmlButton);
@@ -405,6 +450,23 @@ namespace Ace.CourseUploader.Web
             catch (Exception e) { Console.WriteLine(e.Message); }
 
             return;
+        }
+
+        public string TruncateAmpersandOrApostrophe(string name)
+        {
+            var firstAmpersand = name.IndexOf('&');
+            var firstApostrophe = name.IndexOf('\'');
+            if(firstAmpersand > -1 || firstApostrophe > -1)
+            {
+                if (firstAmpersand == -1) name = name.Substring(0, firstApostrophe);
+                else if (firstApostrophe == -1) name = name.Substring(0, firstAmpersand);
+                else
+                {
+                    name = name.Substring(0, firstAmpersand < firstApostrophe ? firstAmpersand : firstApostrophe);
+                }
+            }
+
+            return name;
         }
     }
 }
