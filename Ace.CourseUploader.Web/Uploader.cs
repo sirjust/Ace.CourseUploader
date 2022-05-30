@@ -22,7 +22,7 @@ namespace Ace.CourseUploader.Web
             _wait = wait;
         }
 
-        public void UploadAllMaterials(UploadPackage package)
+        public void UploadAllMaterials(UploadPackage package, bool linkQuestion)
         {
             foreach (var course in package.Courses)
             {
@@ -41,7 +41,7 @@ namespace Ace.CourseUploader.Web
 
             foreach (var question in package.Questions)
             {
-                CreateQuestion(question);
+                CreateQuestion(question, linkQuestion);
             }
 
             //CreateCourse(package.Courses[0]);
@@ -234,7 +234,7 @@ namespace Ace.CourseUploader.Web
             }
         }
 
-        public void CreateQuestion(Question question)
+        public void CreateQuestion(Question question, bool linkQuestion)
         {
             Console.WriteLine($"Creating question with text {question.QuestionText}");
             Actions actions = new Actions(_driver);
@@ -310,22 +310,25 @@ namespace Ace.CourseUploader.Web
             IJavaScriptExecutor ex = (IJavaScriptExecutor)_driver;
             ex.ExecuteScript("arguments[0].click()", correct);
 
-            // This matches a question to all its quizzes
-            var quizSelectHtmlElement = _driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']"));
-            actions.MoveToElement(quizSelectHtmlElement);
-            actions.Perform();
-
-            var selectElement = new SelectElement(quizSelectHtmlElement);
-            foreach (var quiz in question.QuizNames)
+            if (linkQuestion)
             {
-                try
+                // This matches a question to all its quizzes
+                var quizSelectHtmlElement = _driver.FindElement(By.CssSelector("select[name='clms_questions_to_quiz[]']"));
+                actions.MoveToElement(quizSelectHtmlElement);
+                actions.Perform();
+
+                var selectElement = new SelectElement(quizSelectHtmlElement);
+                foreach (var quiz in question.QuizNames)
                 {
-                    selectElement.SelectByText(quiz);
-                }
-                catch
-                {
-                    Console.WriteLine($"Cannot insert question into quiz {quiz}. The quiz doesn't seem to exist. Attempting to continue...");
-                    return;
+                    try
+                    {
+                        selectElement.SelectByText(quiz);
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"Cannot insert question into quiz {quiz}. The quiz doesn't seem to exist. Attempting to continue...");
+                        return;
+                    }
                 }
             }
 

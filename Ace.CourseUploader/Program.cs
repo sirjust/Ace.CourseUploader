@@ -17,10 +17,11 @@ namespace Ace.CourseUploader
     {
         static void Main(string[] args)
         {
-            bool coursesOnly = false, lessonsOnly = false, quizzesOnly = false, questionsOnly = false;
+            bool coursesOnly = false, lessonsOnly = false, quizzesOnly = false, questionsOnly = false, linkQuestion = true;
 
             CommandLine.Parser.Default.ParseArguments<Options>(args)
             .WithParsed(o => {
+                linkQuestion = o.LinkQuestion ?? linkQuestion;
                 if (o.Only == null) { }
                 else if (o.Only.Equals("courses", StringComparison.OrdinalIgnoreCase))
                 {
@@ -104,12 +105,12 @@ namespace Ace.CourseUploader
                 {
                     foreach(var question in reader.UploadPackage.Questions)
                     {
-                        uploader.CreateQuestion(question);
+                        uploader.CreateQuestion(question, linkQuestion);
                     }
                 } else
                 {
                     uploader.ValidateUniqueNames(reader.UploadPackage);
-                    uploader.UploadAllMaterials(reader.UploadPackage);
+                    uploader.UploadAllMaterials(reader.UploadPackage, linkQuestion);
                 }
                 Console.WriteLine("Upload successful");
             }
