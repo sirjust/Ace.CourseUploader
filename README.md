@@ -30,7 +30,7 @@ The other options are lessons, quizzes, and questions
 
 If you don't use the flag, it will upload the whole package.
 
-Another flag can be used if the web application isn't allowing the questions to be linked to the quizzes. It is used by typing `-l` or `--link-question` and setting it to true or false.
+Another flag can be used if the web application isn't allowing the questions to be linked to the quizzes. It is used by typing `-l` or `--link` and setting it to true or false.
 
 Setting this to false will have the program attempt to publish each question without linking it to any quiz.
 
